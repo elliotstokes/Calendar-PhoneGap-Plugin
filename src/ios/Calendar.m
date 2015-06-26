@@ -343,17 +343,33 @@
 -(EKSource*)findEKSource {
   // if iCloud is on, it hides the local calendars, so check for iCloud first
   for (EKSource *source in self.eventStore.sources) {
-    if (source.sourceType == EKSourceTypeCalDAV && [source.title isEqualToString:@"iCloud"]) {
-      return source;
+    if ((source.sourceType == EKSourceTypeCalDAV && [source.title isEqualToString:@"iCloud"]) ||
+        (source.sourceType == EKSourceTypeCalDAV && [source.title containsString:@"@me.com"]) ||
+        (source.sourceType == EKSourceTypeCalDAV && [source.title containsString:@"@mac.com"])
+        ) {
+        if([source calendarsForEntityType:EKEntityTypeEvent].count>0)
+        {
+            return source;
+        }
     }
   }
-  
+
+    
+  for (EKSource *source in self.eventStore.sources) {
+      
+      if (source.sourceType == EKSourceTypeCalDAV && ![source.title isEqualToString:@"CalDAV"] && [source calendarsForEntityType:EKEntityTypeEvent].count>0) {
+          return source;
+      }
+  }
+
   // ok, not found.. so it's a local calendar
   for (EKSource *source in self.eventStore.sources) {
     if (source.sourceType == EKSourceTypeLocal) {
       return source;
     }
   }
+    
+    NSLog(@"Did not find a source for the calendar");
   return nil;
 }
 
